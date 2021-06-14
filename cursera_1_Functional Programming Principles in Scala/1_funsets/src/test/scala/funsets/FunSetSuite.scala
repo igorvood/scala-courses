@@ -23,7 +23,7 @@ class FunSetSuite {
    * Instead of copy-pasting the code for creating the set into every test, we can
    * store it in the test class using a val:
    *
-   *   val s1 = singletonSet(1)
+   * val s1 = singletonSet(1)
    *
    * However, what happens if the method "singletonSet" has a bug and crashes? Then
    * the test methods are not even executed, because creating an instance of the
@@ -45,9 +45,10 @@ class FunSetSuite {
    * "singletonSet" is not yet implemented and the test would fail.
    *
    * Once you finish your implementation of "singletonSet", remvoe the
+   *
    * @Ignore annotation.
    */
-  @Ignore("not ready yet") @Test def `singleton set one contains one`: Unit = {
+  @Test def `singleton set one contains one`: Unit = {
 
     /**
      * We create a new instance of the "TestSets" trait, this gives us access
@@ -67,10 +68,12 @@ class FunSetSuite {
       val s = union(s1, s2)
       assert(contains(s, 1), "Union 1")
       assert(contains(s, 2), "Union 2")
-      assert(!contains(s, 3), "Union 3")
+      private val bool: Boolean = contains(s, 3)
+      assert(!bool, "Union 3")
+      private val set1: _root_.funsets.FunSets.FunSet = union(s, s3)
+      assert(contains(set1, 3), "Union 4")
     }
   }
-
 
 
   @Rule def individualTestTimeout = new org.junit.rules.Timeout(10 * 1000)
