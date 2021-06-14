@@ -65,8 +65,10 @@ class CalculatorSuite {
     val (a, b, c) = (Var(1.0), Var(4.0), Var(1.0))
     val result = computeDelta(a, b, c)
 
+    var d = result()
     assert(kindaEqual(result(), 12.0))
     a() = -5.3
+     d = result()
     assert(kindaEqual(result(), 37.2))
     c() = -123.456
     assert(kindaEqual(result(), -2601.2672))
@@ -87,8 +89,11 @@ class CalculatorSuite {
     assert(kindaEqual(result().min, -0.1980358747915814))
     assert(kindaEqual(result().max, 0.9527528559236569))
 
+    println(result())
+
     c() = -123.456
     delta() = -2601.2672
+    println(result())
     assertEquals(0, result().size)
   }
 
