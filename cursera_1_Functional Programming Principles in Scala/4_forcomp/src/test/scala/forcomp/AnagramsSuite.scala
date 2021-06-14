@@ -5,6 +5,7 @@ import org.junit.Assert.assertEquals
 
 
 class AnagramsSuite {
+
   import Anagrams._
 
   @Test def `wordOccurrences: abcd (3pts)`: Unit =
@@ -27,7 +28,6 @@ class AnagramsSuite {
 
   @Test def `wordAnagrams player (2pts)`: Unit =
     assertEquals(Set("parley", "pearly", "player", "replay"), wordAnagrams("player").toSet)
-
 
 
   @Test def `subtract: lard - r (10pts)`: Unit = {
@@ -63,7 +63,42 @@ class AnagramsSuite {
     assertEquals(List(Nil), sentenceAnagrams(sentence))
   }
 
+  def isSafe(col: Int, queens: List[Int]): Boolean = {
+    val row = queens.length
+    val queensWithRow = (row - 1 to 0 by -1) zip queens
+    queensWithRow forall {
+      case (r, c) => col != c && math.abs(col - c) != row - r
+    }
+  }
+
+  def queens(n: Int) = {
+    def placeQueens(k: Int): Set[List[Int]] = {
+      if (k == 0) Set(List())
+      else {
+        val value: Set[List[Int]] = for {
+          queens <- placeQueens(k - 1)
+          col <- 0 until n
+          if isSafe(col, queens)
+        } yield col :: queens
+        value
+      }
+    }
+
+    placeQueens(n)
+  }
+
+  @Test def my: Unit = {
+    val value = queens(4)
+    println(value)
+  }
+  @Test def `sentence anagrams: Linux rulez1 (10pts)`: Unit = {
+    val sentence = List("Rex", "Zulu")
+    val set = sentenceAnagrams(sentence).toSet
+    println(set)
+  }
+
   @Test def `sentence anagrams: Linux rulez (10pts)`: Unit = {
+
     val sentence = List("Linux", "rulez")
     val anas = List(
       List("Rex", "Lin", "Zulu"),
@@ -87,9 +122,10 @@ class AnagramsSuite {
       List("rulez", "Linux"),
       List("Linux", "rulez")
     )
-    assertEquals(anas.toSet, sentenceAnagrams(sentence).toSet)
+    val value = sentenceAnagrams(sentence)
+    assertEquals(anas.toSet, value.toSet)
   }
 
 
-  @Rule def individualTestTimeout = new org.junit.rules.Timeout(10 * 1000)
+  @Rule def individualTestTimeout = new org.junit.rules.Timeout(10 * 100000000)
 }
