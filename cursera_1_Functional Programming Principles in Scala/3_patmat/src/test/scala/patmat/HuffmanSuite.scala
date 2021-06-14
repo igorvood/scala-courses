@@ -26,6 +26,29 @@ class HuffmanSuite {
   @Test def `string2chars hello world`: Unit =
     assertEquals(List('h', 'e', 'l', 'l', 'o', ',', ' ', 'w', 'o', 'r', 'l', 'd'), string2Chars("hello, world"))
 
+  @Test def `times test`: Unit = {
+    val value1: List[Char] = List('h', 'e', 'l', 'l', 'o', ',', ' ', 'w', 'o', 'r', 'l', 'd')
+    val value = times(value1)
+    println(value)
+
+    val value2: List[Leaf] = makeOrderedLeafList(value)
+
+    val sampleTree = makeCodeTree(
+      makeCodeTree(Leaf('x', 1), Leaf('e', 1)),
+      Leaf('t', 2)
+    )
+    val value3 = combine(value2)
+
+    val tree = createCodeTree(value1)
+
+
+    val table = convert(tree)
+
+
+    val c: Seq[Char] = decode(frenchCode, secret)
+    println(tree)
+  }
+
 
   @Test def `make ordered leaf list for some frequency table (15pts)`: Unit =
     assertEquals(List(Leaf('e',1), Leaf('t',2), Leaf('x',3)), makeOrderedLeafList(List(('t', 2), ('e', 1), ('x', 3))))
@@ -41,7 +64,17 @@ class HuffmanSuite {
     new TestTrees {
       assertEquals("ab".toList, decode(t1, encode(t1)("ab".toList)))
     }
+/*
+  @Test def `'createCodeTree(someText)' gives an optimal encoding, the number of bits when encoding 'someText' is minimal (15pts)`: Unit =
+    new TestTrees {
+      private val list: List[Char] = "createCodeTree(someText)".map(q => q).toList
+      private val tree: CodeTree = createCodeTree(list)
+      private val value: List[_root_.patmat.Huffman.Bit] = encode(tree)(list)
+      assertEquals(1919, value.size)
+    }*/
 
 
-  @Rule def individualTestTimeout = new org.junit.rules.Timeout(10 * 1000)
+
+
+  @Rule def individualTestTimeout = new org.junit.rules.Timeout(10 * 1000000000)
 }
