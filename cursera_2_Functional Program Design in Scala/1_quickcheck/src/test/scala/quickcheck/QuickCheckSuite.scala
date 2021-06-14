@@ -1,13 +1,8 @@
 package quickcheck
 
-import org.scalacheck.Prop
-import org.scalacheck.Properties
 import org.junit._
-
-import org.scalacheck.Arbitrary._
-import org.scalacheck.Prop
-import org.scalacheck.Prop._
-import org.scalacheck.Test.{check, Result, Failed, PropException}
+import org.scalacheck.{Gen, Prop, Properties}
+import org.scalacheck.Test.{Failed, PropException, Result, check}
 
 object QuickCheckBinomialHeap extends QuickCheckHeap with BinomialHeap
 
@@ -18,8 +13,8 @@ class QuickCheckSuite {
 
     check(asProp(p))(identity) match {
       case r: Result => r.status match {
-        case _: Failed         => () // OK: scalacheck found a counter example!
-        case p: PropException  => p.e match {
+        case _: Failed => () // OK: scalacheck found a counter example!
+        case p: PropException => p.e match {
           case e: NoSuchElementException => () // OK: the implementation throws NSEE
           case _ => fail
         }
@@ -29,7 +24,7 @@ class QuickCheckSuite {
   }
 
   /** Turns a `Properties` instance into a single `Prop` by combining all the properties */
-  def asProp(properties: Properties): Prop = Prop.all(properties.properties.map(_._2).toSeq:_*)
+  def asProp(properties: Properties): Prop = Prop.all(properties.properties.map(_._2).toSeq: _*)
 
   @Test def `Binomial heap satisfies properties. (5pts)`: Unit =
     Assert.assertTrue(
@@ -51,5 +46,6 @@ class QuickCheckSuite {
   @Test def `Bogus (5) binomial heap does not satisfy properties. (10pts)`: Unit =
     checkBogus(new QuickCheckHeap with quickcheck.test.Bogus5BinomialHeap)
 
-  @Rule def individualTestTimeout = new org.junit.rules.Timeout(10 * 1000)
+
+  @Rule def individualTestTimeout = new org.junit.rules.Timeout(10 * 10000)
 }
