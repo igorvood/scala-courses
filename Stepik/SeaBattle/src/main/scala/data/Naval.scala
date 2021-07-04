@@ -27,10 +27,9 @@ object Naval {
 
   def readNext: String = {
     input match {
-      case x :: xs => {
+      case x :: xs =>
         input = xs
         x
-      }
       case Nil => "Empty"
     }
 
