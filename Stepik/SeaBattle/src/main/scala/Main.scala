@@ -1,6 +1,7 @@
 package ru.vood.scala.sea.battle
 
 import data.Lesson
+import data.Lesson.{fieldBad1, fieldBad2, fieldBad3}
 import data.Naval.{Field, Fleet, Ship, readNext}
 
 object Main extends App {
@@ -65,6 +66,12 @@ object Main extends App {
     value1.size == ship.size
   }
 
+//  // добавить корабль во флот
+//  def enrichFleet(fleet: Fleet, name: String, ship: Ship): Fleet = {
+//    val value1: Fleet = fleet ++ (name, ship)
+//    value1
+//  }
+
 
   assert(validateShip(List((0, 0))))
   assert(validateShip(List((0, 1), (0, 2))))
@@ -80,5 +87,7 @@ object Main extends App {
   assert(!validatePosition(List((0, 10)), Lesson.field))
   assert(!validatePosition(List((-1, 0)), Lesson.field))
   assert(!validatePosition(List((0, -1)), Lesson.field))
-  assert(!validatePosition(List((0, 0)), Vector(Vector(true))))
+  assert(!validatePosition(List((0, 0)), fieldBad1))
+  assert(!validatePosition(List((0, 0)), fieldBad2))
+  assert(!validatePosition(List((0, 0)), fieldBad3))
 }
