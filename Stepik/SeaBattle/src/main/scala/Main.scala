@@ -35,21 +35,29 @@ object Main extends App {
 
   def checkIsVertical(ship: Ship, isVertical: Boolean = true): Boolean = {
     (isVertical, ship.map(_._1).distinct.size, ship.map(_._2).distinct.size) match {
-      case (true, row, col) => row == 1 && col > 1
+      case (_, row, col) if col == 1 && row == 1 => true
+
+      case (false, row, col) => row == 1 && col > 1
       case (true, row, col) => row > 1 && col == 1
     }
   }
 
   // определить, подходит ли корабль по своим характеристикам
   def validateShip(ship: Ship): Boolean = {
-    val size = ship.map(_._1).distinct.size
-    val size1 = ship.map(_._2).distinct.size
-    println(size + " " + size1)
-    (size == 1) || (size1 == 1)
+    val isVert = checkIsVertical(ship)
+    val isHor = checkIsVertical(ship, isVertical = false)
+    (isVert, isHor, ship) match {
+      case (true, false, s) => (s.map(_._1).min to s.map(_._1).max) == s.map(_._1)
+      case (false, true, s) => (s.map(_._2).min to s.map(_._2).max) == s.map(_._2)
+      case (true, true, _) => true
+      case _ => false
+    }
   }
 
 
   assert(validateShip(List((0, 0))))
+  assert(validateShip(List((0, 1), (0, 2))))
+  assert(validateShip(List((0, 0), (1, 0))))
   assert(!validateShip(List((0, 0), (0, 1), (1, 0))))
   assert(!validateShip(List((0, 0), (0, 1), (0, 2), (0, 3), (0, 5))))
 }
