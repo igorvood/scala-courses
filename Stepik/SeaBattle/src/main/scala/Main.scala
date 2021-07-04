@@ -60,24 +60,67 @@ object Main extends App {
     field.zipWithIndex.flatMap(row => row._1.zipWithIndex.map(col => (col._1, (row._2, col._2))))
   }
 
-  def isInField(point: (Int, Int), field: Field): Boolean = {
-    remap(field).map(q=>q._2).contains(point)
+  //  def remapRevert(field: Seq[(Boolean, (Int, Int))]): Field = {
+  //    //    field.zipWithIndex.flatMap(row => row._1.zipWithIndex.map(col => (col._1, (row._2, col._2))))
+  //    for {
+  //      f <- field
+  //    }
+  //
+  //  }
+
+
+  def isInField(point: (Int, Int), field: Seq[(Int, Int)]): Boolean = {
+    field.contains(point)
   }
+
+  private def validPoint(mappedF: Seq[(Boolean, (Int, Int))], pointOnly: Seq[(Int, Int)], point: (Int, Int)): Boolean = {
+    !isInField((point._1, point._2), pointOnly) || mappedF.contains((false, (point._1, point._2)))
+  }
+
+  private def validPointArround(mappedF: Seq[(Boolean, (Int, Int))], pointOnly: Seq[(Int, Int)], point: (Int, Int)): Boolean = {
+    validPoint(mappedF, pointOnly, (point._1 + 1, point._2)) &&
+      validPoint(mappedF, pointOnly, (point._1 - 1, point._2)) &&
+      validPoint(mappedF, pointOnly, (point._1, point._2 + 1)) &&
+      validPoint(mappedF, pointOnly, (point._1, point._2 - 1)) &&
+      validPoint(mappedF, pointOnly, (point._1 + 1, point._2 + 1)) &&
+      validPoint(mappedF, pointOnly, (point._1 + 1, point._2 - 1)) &&
+      validPoint(mappedF, pointOnly, (point._1 - 1, point._2 + 1)) &&
+      validPoint(mappedF, pointOnly, (point._1 - 1, point._2 - 1))
+  }
+
 
   def validatePosition(ship: Ship, field: Field): Boolean = {
     val mappedF: Seq[(Boolean, (Int, Int))] = remap(field)
+    val pointOnly = mappedF.map(_._2)
     val value1 = for {
       s <- ship
-      m <- mappedF if !m._1 && m._2 == s
+      m <- mappedF if !m._1 && m._2 == s && validPointArround(mappedF, pointOnly, (s._1, s._2))
     } yield m
     value1.size == ship.size
   }
 
-  //  // добавить корабль во флот
-  //  def enrichFleet(fleet: Fleet, name: String, ship: Ship): Fleet = {
-  //    val value1: Fleet = fleet ++ (name, ship)
-  //    value1
-  //  }
+  // добавить корабль во флот
+  def enrichFleet(fleet: Fleet, name: String, ship: Ship): Fleet = {
+    val tuple: (String, Ship) = (name, ship)
+    val value1: Fleet = fleet + tuple
+    value1
+
+  }
+
+  // пометить клетки, которые занимает добавляемый корабль
+  def markUsedCells(field: Field, ship: Ship): Field = {
+
+    for {
+      row <- field.zipWithIndex
+      col <- row._1.zipWithIndex.map(q => (q._1, row._2, q._2))
+    } yield col
+
+
+
+
+
+    ???
+  }
 
 
   assert(validateShip(List((0, 0))))
