@@ -1,6 +1,7 @@
 package ru.vood.scala.sea.battle
 
-import data.Naval.{Fleet, Ship, readNext}
+import data.Lesson
+import data.Naval.{Field, Fleet, Ship, readNext}
 
 object Main extends App {
 
@@ -36,7 +37,6 @@ object Main extends App {
   def checkIsVertical(ship: Ship, isVertical: Boolean = true): Boolean = {
     (isVertical, ship.map(_._1).distinct.size, ship.map(_._2).distinct.size) match {
       case (_, row, col) if col == 1 && row == 1 => true
-
       case (false, row, col) => row == 1 && col > 1
       case (true, row, col) => row > 1 && col == 1
     }
@@ -46,12 +46,23 @@ object Main extends App {
   def validateShip(ship: Ship): Boolean = {
     val isVert = checkIsVertical(ship)
     val isHor = checkIsVertical(ship, isVertical = false)
-    (isVert, isHor, ship) match {
-      case (true, false, s) => (s.map(_._1).min to s.map(_._1).max) == s.map(_._1)
-      case (false, true, s) => (s.map(_._2).min to s.map(_._2).max) == s.map(_._2)
-      case (true, true, _) => true
+    (isVert, isHor, ship, ship.size) match {
+      case (_, _, _, l) if l > 4 => false
+      case (true, false, s, _) => (s.map(_._1).min to s.map(_._1).max) == s.map(_._1)
+      case (false, true, s, _) => (s.map(_._2).min to s.map(_._2).max) == s.map(_._2)
+      case (true, true, _, _) => true
       case _ => false
     }
+  }
+
+
+  def validatePosition(ship: Ship, field: Field): Boolean = {
+    val mappedF: Seq[(Boolean, (Int, Int))] = field.zipWithIndex.flatMap(row => row._1.zipWithIndex.map(col => (col._1, (row._2, col._2))))
+    val value1 = for {
+      s <- ship
+      m <- mappedF if !m._1 && m._2 == s
+    } yield m
+    value1.size == ship.size
   }
 
 
@@ -60,4 +71,14 @@ object Main extends App {
   assert(validateShip(List((0, 0), (1, 0))))
   assert(!validateShip(List((0, 0), (0, 1), (1, 0))))
   assert(!validateShip(List((0, 0), (0, 1), (0, 2), (0, 3), (0, 5))))
+  assert(!validateShip(List((0, 0), (0, 1), (0, 2), (0, 3), (0, 4), (0, 5))))
+  assert(validateShip(List((0, 0), (0, 1), (0, 2), (0, 3))))
+
+
+  assert(validatePosition(List((0, 0)), Lesson.field))
+  assert(!validatePosition(List((10, 0)), Lesson.field))
+  assert(!validatePosition(List((0, 10)), Lesson.field))
+  assert(!validatePosition(List((-1, 0)), Lesson.field))
+  assert(!validatePosition(List((0, -1)), Lesson.field))
+  assert(!validatePosition(List((0, 0)), Vector(Vector(true))))
 }
