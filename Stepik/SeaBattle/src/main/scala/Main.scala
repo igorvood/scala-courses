@@ -56,9 +56,16 @@ object Main extends App {
     }
   }
 
+  def remap(field: Field): Seq[(Boolean, (Int, Int))] = {
+    field.zipWithIndex.flatMap(row => row._1.zipWithIndex.map(col => (col._1, (row._2, col._2))))
+  }
+
+  def isInField(point: (Int, Int), field: Field): Boolean = {
+    remap(field).map(q=>q._2).contains(point)
+  }
 
   def validatePosition(ship: Ship, field: Field): Boolean = {
-    val mappedF: Seq[(Boolean, (Int, Int))] = field.zipWithIndex.flatMap(row => row._1.zipWithIndex.map(col => (col._1, (row._2, col._2))))
+    val mappedF: Seq[(Boolean, (Int, Int))] = remap(field)
     val value1 = for {
       s <- ship
       m <- mappedF if !m._1 && m._2 == s
@@ -66,11 +73,11 @@ object Main extends App {
     value1.size == ship.size
   }
 
-//  // добавить корабль во флот
-//  def enrichFleet(fleet: Fleet, name: String, ship: Ship): Fleet = {
-//    val value1: Fleet = fleet ++ (name, ship)
-//    value1
-//  }
+  //  // добавить корабль во флот
+  //  def enrichFleet(fleet: Fleet, name: String, ship: Ship): Fleet = {
+  //    val value1: Fleet = fleet ++ (name, ship)
+  //    value1
+  //  }
 
 
   assert(validateShip(List((0, 0))))
