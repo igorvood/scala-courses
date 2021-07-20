@@ -17,6 +17,11 @@ object HorizontalBoxBlurRunner:
     val height = 1080
     val src = Img(width, height)
     val dst = Img(width, height)
+
+    val value = src(2, 2)
+    val rgba = boxBlurKernel(src, 2, 2, 1)
+    
+    
     val seqtime = standardConfig measure {
       HorizontalBoxBlur.blur(src, dst, 0, height, radius)
     }

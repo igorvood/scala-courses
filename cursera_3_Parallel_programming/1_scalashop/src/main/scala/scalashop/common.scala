@@ -1,9 +1,9 @@
 package scalashop
 
+import org.scalameter.*
+
 import java.util.concurrent.*
 import scala.util.DynamicVariable
-
-import org.scalameter.*
 
 /** The value of every pixel is represented as a 32 bit integer. */
 type RGBA = Int
@@ -33,19 +33,35 @@ def clamp(v: Int, min: Int, max: Int): Int =
 /** Image is a two-dimensional matrix of pixel values. */
 class Img(val width: Int, val height: Int, private val data: Array[RGBA]):
   def this(w: Int, h: Int) = this(w, h, new Array(w * h))
+
   def apply(x: Int, y: Int): RGBA = data(y * width + x)
+
   def update(x: Int, y: Int, c: RGBA): Unit = data(y * width + x) = c
 
 /** Computes the blurred RGBA value of a single pixel of the input image. */
-def boxBlurKernel(src: Img, x: Int, y: Int, radius: Int): RGBA =
-
-  // TODO implement using while loops
-  ???
+def boxBlurKernel(src: Img, x: Int, y: Int, radius: Int): RGBA = {
+  val points = for {
+    xp <- (x - radius to x + radius)
+    yp <- (y - radius to y + radius)
+    point = src(xp, yp)
+    rp = red(point)
+    bp = blue(point)
+    gp = green(point)
+    ap = alpha(point)
+  } yield (rp, bp, gp, ap)
+  val size = points.size
+  val ((ar, ab), (ag, aa)) = parallel(
+    parallel(points.map(_._1).sum / size, points.map(_._2).sum / size),
+    parallel(points.map(_._3).sum / size, points.map(_._4).sum / size)
+  )
+  rgba(ar, ag, ab, aa)
+}
 
 val forkJoinPool = ForkJoinPool()
 
 abstract class TaskScheduler:
   def schedule[T](body: => T): ForkJoinTask[T]
+
   def parallel[A, B](taskA: => A, taskB: => B): (A, B) =
     val right = task {
       taskB
@@ -53,7 +69,7 @@ abstract class TaskScheduler:
     val left = taskA
     (left, right.join())
 
-class DefaultTaskScheduler extends TaskScheduler:
+class DefaultTaskScheduler extends TaskScheduler :
   def schedule[T](body: => T): ForkJoinTask[T] =
     val t = new RecursiveTask[T] {
       def compute = body
@@ -75,8 +91,14 @@ def parallel[A, B](taskA: => A, taskB: => B): (A, B) =
   scheduler.value.parallel(taskA, taskB)
 
 def parallel[A, B, C, D](taskA: => A, taskB: => B, taskC: => C, taskD: => D): (A, B, C, D) =
-  val ta = task { taskA }
-  val tb = task { taskB }
-  val tc = task { taskC }
+  val ta = task {
+    taskA
+  }
+  val tb = task {
+    taskB
+  }
+  val tc = task {
+    taskC
+  }
   val td = taskD
   (ta.join(), tb.join(), tc.join(), td)
