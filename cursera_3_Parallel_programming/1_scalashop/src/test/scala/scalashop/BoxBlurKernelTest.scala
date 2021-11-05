@@ -18,7 +18,7 @@ case class TestCase(
                      val expectAlpha: Int
                    )
 
-class Test2 {
+class BoxBlurKernelTest {
 
   def runTest(
                testPointx: Int,
