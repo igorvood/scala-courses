@@ -14,7 +14,7 @@ class Test2 {
 
   @Test
   def `boxBlurKernel_1`(): Unit = {
-    val radius = 3
+//    val radius = 3
     val width = 5
     val height = 5
     val src = Img(width, height)
