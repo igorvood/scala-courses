@@ -40,12 +40,14 @@ object VerticalBoxBlur extends VerticalBoxBlurInterface :
    * bottom.
    */
   def blur(src: Img, dst: Img, from: Int, end: Int, radius: Int): Unit = {
+    println("begin blur")
     val blurValue = for {
       yp <- (from to end) if (clamp(yp, 0, src.height - 1) == yp)
       xp <- (0 to src.height) if (clamp(xp, 0, src.width - 1) == xp)
       col = boxBlurKernel(src, xp, yp, radius)
     } yield (xp, yp, col)
 
+    println("move to dest blur")
     blurValue foreach { q => dst.update(q._1, q._2, q._3) }
   }
   //    src.foreach{}

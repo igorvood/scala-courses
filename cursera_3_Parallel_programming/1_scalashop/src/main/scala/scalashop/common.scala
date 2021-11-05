@@ -46,14 +46,14 @@ def boxBlurKernel(src: Img, x: Int, y: Int, radius: Int): RGBA = {
   //  val blueP = blue(currentPoint)
   //  val greenP = green(currentPoint)
   //  val alphaP = alpha(currentPoint)
-/*
-  val dd = for {
-    yp <- (y - radius to y + radius) if (clamp(yp, 0, src.height - 1) == yp)
-    xp <- (x - radius to x + radius) if (clamp(xp, 0, src.width - 1) == xp)
-  } yield (xp, xp, yp * src.width + xp)
+  /*
+    val dd = for {
+      yp <- (y - radius to y + radius) if (clamp(yp, 0, src.height - 1) == yp)
+      xp <- (x - radius to x + radius) if (clamp(xp, 0, src.width - 1) == xp)
+    } yield (xp, xp, yp * src.width + xp)
 
-  dd.size
-*/
+    dd.size
+  */
   /// delete
   val points = for {
     yp <- (y - radius to y + radius) if (clamp(yp, 0, src.height-1) == yp)
