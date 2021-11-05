@@ -42,7 +42,7 @@ object VerticalBoxBlur extends VerticalBoxBlurInterface :
     println("begin blur")
     val blurValue = for {
       yp <- (from to end) if (clamp(yp, 0, src.height - 1) == yp)
-      xp <- (0 to src.height) if (clamp(xp, 0, src.width - 1) == xp)
+      xp <- (0 to src.width) if (clamp(xp, 0, src.width - 1) == xp)
       col = boxBlurKernel(src, xp, yp, radius)
     } yield (xp, yp, col)
 

@@ -42,10 +42,18 @@ object HorizontalBoxBlur extends HorizontalBoxBlurInterface:
    *
    *  Within each row, `blur` traverses the pixels by going from left to right.
    */
-  def blur(src: Img, dst: Img, from: Int, end: Int, radius: Int): Unit =
-  // TODO implement this method using the `boxBlurKernel` method
+  def blur(src: Img, dst: Img, from: Int, end: Int, radius: Int): Unit = {
+    println("begin blur")
+    val blurValue = for {
+      yp <- (0 to src.height) if (clamp(yp, 0, src.height - 1) == yp)
+      xp <- (from to end)  if (clamp(xp, 0, src.width - 1) == xp)
+      col = boxBlurKernel(src, xp, yp, radius)
+    } yield (xp, yp, col)
 
-  ???
+    println("move to dest blur")
+    blurValue foreach { q => dst.update(q._1, q._2, q._3) }
+  }
+
 
   /** Blurs the rows of the source image in parallel using `numTasks` tasks.
    *
@@ -53,8 +61,16 @@ object HorizontalBoxBlur extends HorizontalBoxBlurInterface:
    *  `numTasks` separate strips, where each strip is composed of some number of
    *  rows.
    */
-  def parBlur(src: Img, dst: Img, numTasks: Int, radius: Int): Unit =
-  // TODO implement using the `task` construct and the `blur` method
+  def parBlur(src: Img, dst: Img, numTasks: Int, radius: Int): Unit ={
+    val colsPerTaks:Int = Math.max(src.height / numTasks,1)
+    val startPoints = Range(0, src.width) by colsPerTaks
 
-  ???
+    val tasks = startPoints.map(t => {
+    task {
+    blur(src, dst, t, t + colsPerTaks, radius)
+  }
+  })
+
+    tasks.map(t => t.join())
+  }
 
