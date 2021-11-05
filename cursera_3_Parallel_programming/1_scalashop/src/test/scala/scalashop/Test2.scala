@@ -2,6 +2,7 @@ package scalashop
 
 import org.junit.Test
 import scalashop.*
+import org.junit.Assert.*
 
 import java.util.concurrent.*
 import scala.collection.*
@@ -32,6 +33,7 @@ class Test2 {
 
     val value = src(2, 2)
     val rgba1 = boxBlurKernel(src, 2, 2, 1)
+    assertNotEquals(value, rgba1)
     println(rgba)
   }
 }
