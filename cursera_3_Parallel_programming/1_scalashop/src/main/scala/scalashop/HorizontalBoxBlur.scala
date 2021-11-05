@@ -9,7 +9,7 @@ object HorizontalBoxBlurRunner:
     Key.exec.maxWarmupRuns := 10,
     Key.exec.benchRuns := 10,
     Key.verbose := false
-  ) withWarmer(Warmer.Default())
+  ) withWarmer (Warmer.Default())
 
   def main(args: Array[String]): Unit =
     val radius = 3
@@ -20,8 +20,8 @@ object HorizontalBoxBlurRunner:
 
     val value = src(2, 2)
     val rgba = boxBlurKernel(src, 2, 2, 1)
-    
-    
+
+
     val seqtime = standardConfig measure {
       HorizontalBoxBlur.blur(src, dst, 0, height, radius)
     }
@@ -35,41 +35,40 @@ object HorizontalBoxBlurRunner:
     println(s"speedup: ${seqtime.value / partime.value}")
 
 /** A simple, trivially parallelizable computation. */
-object HorizontalBoxBlur extends HorizontalBoxBlurInterface:
+object HorizontalBoxBlur extends HorizontalBoxBlurInterface :
 
   /** Blurs the rows of the source image `src` into the destination image `dst`,
-   *  starting with `from` and ending with `end` (non-inclusive).
+   * starting with `from` and ending with `end` (non-inclusive).
    *
-   *  Within each row, `blur` traverses the pixels by going from left to right.
+   * Within each row, `blur` traverses the pixels by going from left to right.
    */
   def blur(src: Img, dst: Img, from: Int, end: Int, radius: Int): Unit = {
-    println("begin blur")
     val blurValue = for {
-      yp <- (0 to src.height) if (clamp(yp, 0, src.height - 1) == yp)
-      xp <- (from to end)  if (clamp(xp, 0, src.width - 1) == xp)
-      col = boxBlurKernel(src, xp, yp, radius)
-    } yield (xp, yp, col)
+      xp <- (0 until src.width)
+      yp <- (from until end)
+      if yp >= 0 && yp < src.height
+    } yield {
+      dst.update(xp, yp, boxBlurKernel(src, xp, yp, radius))
+    }
 
-    println("move to dest blur")
-    blurValue foreach { q => dst.update(q._1, q._2, q._3) }
   }
 
 
   /** Blurs the rows of the source image in parallel using `numTasks` tasks.
    *
-   *  Parallelization is done by stripping the source image `src` into
-   *  `numTasks` separate strips, where each strip is composed of some number of
-   *  rows.
+   * Parallelization is done by stripping the source image `src` into
+   * `numTasks` separate strips, where each strip is composed of some number of
+   * rows.
    */
-  def parBlur(src: Img, dst: Img, numTasks: Int, radius: Int): Unit ={
-    val colsPerTaks:Int = Math.max(src.height / numTasks,1)
+  def parBlur(src: Img, dst: Img, numTasks: Int, radius: Int): Unit = {
+    val colsPerTaks: Int = Math.max(src.height / numTasks, 1)
     val startPoints = Range(0, src.width) by colsPerTaks
 
     val tasks = startPoints.map(t => {
-    task {
-    blur(src, dst, t, t + colsPerTaks, radius)
-  }
-  })
+      task {
+        blur(src, dst, t, t + colsPerTaks, radius)
+      }
+    })
 
     tasks.map(t => t.join())
   }
