@@ -9,7 +9,7 @@ object VerticalBoxBlurRunner:
     Key.exec.maxWarmupRuns := 10,
     Key.exec.benchRuns := 10,
     Key.verbose := false
-  ) withWarmer(Warmer.Default())
+  ) withWarmer (Warmer.Default())
 
   def main(args: Array[String]): Unit =
     val radius = 3
@@ -31,25 +31,39 @@ object VerticalBoxBlurRunner:
 
 
 /** A simple, trivially parallelizable computation. */
-object VerticalBoxBlur extends VerticalBoxBlurInterface:
+object VerticalBoxBlur extends VerticalBoxBlurInterface :
 
   /** Blurs the columns of the source image `src` into the destination image
-   *  `dst`, starting with `from` and ending with `end` (non-inclusive).
+   * `dst`, starting with `from` and ending with `end` (non-inclusive).
    *
-   *  Within each column, `blur` traverses the pixels by going from top to
-   *  bottom.
+   * Within each column, `blur` traverses the pixels by going from top to
+   * bottom.
    */
-  def blur(src: Img, dst: Img, from: Int, end: Int, radius: Int): Unit =
-    // TODO implement this method using the `boxBlurKernel` method
-    ???
+  def blur(src: Img, dst: Img, from: Int, end: Int, radius: Int): Unit = {
+    val blurValue = for {
+      yp <- (from to end) if (clamp(yp, 0, src.height - 1) == yp)
+      xp <- (0 to src.height) if (clamp(xp, 0, src.width - 1) == xp)
+      col = boxBlurKernel(src, xp, yp, radius)
+    } yield (xp, yp, col)
+
+    blurValue foreach { q => dst.update(q._1, q._2, q._3) }
+  }
+  //    src.foreach{}
+
+
+  /*
+      blurValue.size
+      // TODO implement this method using the `boxBlurKernel` method
+      ???
+  */
 
   /** Blurs the columns of the source image in parallel using `numTasks` tasks.
    *
-   *  Parallelization is done by stripping the source image `src` into
-   *  `numTasks` separate strips, where each strip is composed of some number of
-   *  columns.
+   * Parallelization is done by stripping the source image `src` into
+   * `numTasks` separate strips, where each strip is composed of some number of
+   * columns.
    */
   def parBlur(src: Img, dst: Img, numTasks: Int, radius: Int): Unit =
-    // TODO implement using the `task` construct and the `blur` method
+  // TODO implement using the `task` construct and the `blur` method
     ???
 
