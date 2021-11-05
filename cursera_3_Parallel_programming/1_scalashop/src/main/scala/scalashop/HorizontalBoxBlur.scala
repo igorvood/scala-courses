@@ -61,15 +61,15 @@ object HorizontalBoxBlur extends HorizontalBoxBlurInterface :
    * rows.
    */
   def parBlur(src: Img, dst: Img, numTasks: Int, radius: Int): Unit = {
-    val colsPerTaks: Int = Math.max(src.height / numTasks, 1)
-    val startPoints = Range(0, src.width) by colsPerTaks
+    val separateStrips: Seq[Int] = 0 to src.height by (src.height / numTasks max 1)
 
-    val tasks = startPoints.map(t => {
-      task {
-        blur(src, dst, t, t + colsPerTaks, radius)
+    val range: Seq[(Int, Int)] = separateStrips.zip(separateStrips.tail)
+    range
+      .map { case (from, end) =>
+        task[Unit] {
+          blur(src, dst, from, end, radius)
+        }
       }
-    })
-
-    tasks.map(t => t.join())
+      .foreach(_.join())
   }
 
