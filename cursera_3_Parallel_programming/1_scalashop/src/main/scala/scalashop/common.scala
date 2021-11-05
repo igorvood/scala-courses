@@ -40,9 +40,23 @@ class Img(val width: Int, val height: Int, private val data: Array[RGBA]):
 
 /** Computes the blurred RGBA value of a single pixel of the input image. */
 def boxBlurKernel(src: Img, x: Int, y: Int, radius: Int): RGBA = {
+
+  val currentPoint = src.apply(x, y)
+  val redP = red(currentPoint)
+  val blueP = blue(currentPoint)
+  val greenP = green(currentPoint)
+  val alphaP = alpha(currentPoint)
+  val dd = for {
+    yp <- (y - radius to y + radius) if (clamp(yp, 0, src.width-1) == yp)
+    xp <- (x - radius to x + radius) if (clamp(xp, 0, src.height-1) == xp)
+  } yield (xp, xp, yp * src.width + xp)
+
+  dd.size
+
+  /// delete
   val points = for {
-    xp <- (x - radius to x + radius)
-    yp <- (y - radius to y + radius)
+    yp <- (y - radius to y + radius) if (clamp(yp, 0, src.width-1) == yp)
+    xp <- (x - radius to x + radius) if (clamp(xp, 0, src.height-1) == xp)
     point = src(xp, yp)
     rp = red(point)
     bp = blue(point)
