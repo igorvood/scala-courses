@@ -21,7 +21,6 @@ object VerticalBoxBlurRunner:
       VerticalBoxBlur.blur(src, dst, 0, width, radius)
     }
     println(s"sequential blur time: $seqtime")
-
     val numTasks = 32
     val partime = standardConfig measure {
       VerticalBoxBlur.parBlur(src, dst, numTasks, radius)
@@ -50,14 +49,6 @@ object VerticalBoxBlur extends VerticalBoxBlurInterface :
     println("move to dest blur")
     blurValue foreach { q => dst.update(q._1, q._2, q._3) }
   }
-  //    src.foreach{}
-
-
-  /*
-      blurValue.size
-      // TODO implement this method using the `boxBlurKernel` method
-      ???
-  */
 
   /** Blurs the columns of the source image in parallel using `numTasks` tasks.
    *
@@ -65,7 +56,16 @@ object VerticalBoxBlur extends VerticalBoxBlurInterface :
    * `numTasks` separate strips, where each strip is composed of some number of
    * columns.
    */
-  def parBlur(src: Img, dst: Img, numTasks: Int, radius: Int): Unit =
-  // TODO implement using the `task` construct and the `blur` method
-    ???
+  def parBlur(src: Img, dst: Img, numTasks: Int, radius: Int): Unit = {
+    val colsPerTaks:Int = Math.max(src.width / numTasks,1)
+    val startPoints = Range(0, src.width) by colsPerTaks
+
+    val tasks = startPoints.map(t => {
+      task {
+        blur(src, dst, t, t + colsPerTaks, radius)
+      }
+    })
+
+    tasks.map(t => t.join())
+  }
 
