@@ -55,15 +55,18 @@ def boxBlurKernel(src: Img, x: Int, y: Int, radius: Int): RGBA = {
     dd.size
   */
   /// delete
-  val points = for {
-    yp <- (y - radius to y + radius) if (clamp(yp, 0, src.height-1) == yp)
-    xp <- (x - radius to x + radius) if (clamp(xp, 0, src.width-1) == xp)
+  val points: Seq[(Int, Int, Int, Int)] = for {
+    yp <- (y - radius to y + radius) if (clamp(yp, 0, src.height - 1) == yp)
+    xp <- (x - radius to x + radius) if (clamp(xp, 0, src.width - 1) == xp)
     point = src(xp, yp)
     rp = red(point)
     bp = blue(point)
     gp = green(point)
     ap = alpha(point)
   } yield (rp, bp, gp, ap)
+
+//  val tuple = points.fold((0, 0, 0, 0))((q, q1) => (q._1 + q1._1, q._2 + q1._2, q._3 + q1._3, q._4 + q1._4))
+
   val size = points.size
   val ((ar, ab), (ag, aa)) = parallel(
     parallel(points.map(_._1).sum / size, points.map(_._2).sum / size),
