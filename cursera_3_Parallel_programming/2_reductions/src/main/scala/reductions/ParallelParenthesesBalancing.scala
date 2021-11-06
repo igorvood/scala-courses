@@ -37,8 +37,16 @@ object ParallelParenthesesBalancing extends ParallelParenthesesBalancingInterfac
 
   /** Returns `true` iff the parentheses in the input `chars` are balanced.
    */
-  def balance(chars: Array[Char]): Boolean =
-    ???
+  def balance(chars: Array[Char]): Boolean = {
+    def loop(level: Int, chars: Array[Char]): Int = {
+      if (chars.isEmpty) level
+      else if (level < 0) level
+      else if (chars.head == '(') loop(level + 1, chars.tail)
+      else if (chars.head == ')') loop(level - 1, chars.tail)
+      else loop(level, chars.tail)
+    }
+    loop(0, chars) == 0
+  }
 
   /** Returns `true` iff the parentheses in the input `chars` are balanced.
    */

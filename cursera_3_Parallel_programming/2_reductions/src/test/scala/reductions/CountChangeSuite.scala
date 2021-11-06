@@ -6,7 +6,6 @@ import scala.collection.*
 
 class CountChangeSuite extends munit.FunSuite {
 
-
   test("countChange example given in instructions") {
     assert(ParallelCountChange.countChange(4, List(1, 2)) == 3)
   }
