@@ -47,8 +47,14 @@ object ParallelCountChange extends ParallelCountChangeInterface:
   /** Returns the number of ways change can be made from the specified list of
    *  coins for the specified amount of money.
    */
-  def countChange(money: Int, coins: List[Int]): Int =
-    ???
+  def countChange(money: Int, coins: List[Int]): Int ={
+    def loop(count: Int, money: Int, coins: List[Int]): Int = {
+      if (money == 0) count + 1
+      else if (money < 0 || coins.isEmpty) 0
+      else loop(count, money, coins.tail) + loop(count, money - coins.head, coins)
+    }
+    loop(0, money, coins)
+  }
 
   type Threshold = (Int, List[Int]) => Boolean
 
