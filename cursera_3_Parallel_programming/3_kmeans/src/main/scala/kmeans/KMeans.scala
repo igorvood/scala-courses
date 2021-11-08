@@ -29,8 +29,8 @@ class KMeans extends KMeansInterface:
   def findClosest(p: Point, means: IterableOnce[Point]): Point =
     val it = means.iterator
     assert(it.nonEmpty)
-    var closest = it.next()
-    var minDistance = p.squareDistance(closest)
+    var closest: Point = it.next()
+    var minDistance: Double = p.squareDistance(closest)
     while it.hasNext do
       val point = it.next()
       val distance = p.squareDistance(point)
@@ -39,8 +39,11 @@ class KMeans extends KMeansInterface:
         closest = point
     closest
 
-  def classify(points: ParSeq[Point], means: ParSeq[Point]): ParMap[Point, ParSeq[Point]] =
+  def classify(points: ParSeq[Point], means: ParSeq[Point]): ParMap[Point, ParSeq[Point]] = {
+
+    val value: Any = points.groupBy(p => findClosest(p, means))
     ???
+  }
 
   def findAverage(oldMean: Point, points: ParSeq[Point]): Point = if points.isEmpty then oldMean else
     var x = 0.0
