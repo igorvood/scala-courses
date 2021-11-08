@@ -8,7 +8,7 @@ import scala.util.Random
 import org.scalameter.*
 import java.util.concurrent.ForkJoinPool
 
-class KMeans extends KMeansInterface:
+class KMeans extends KMeansInterface :
 
   def generatePoints(k: Int, num: Int): ParSeq[Point] =
     val randx = Random(1)
@@ -40,9 +40,10 @@ class KMeans extends KMeansInterface:
     closest
 
   def classify(points: ParSeq[Point], means: ParSeq[Point]): ParMap[Point, ParSeq[Point]] = {
+    val groupingPoint: ParMap[Point, ParSeq[Point]] = points.groupBy(p => findClosest(p, means))
+    val map1: ParMap[Point, ParSeq[Point]] = means.map(mean => (mean, groupingPoint.getOrElse(mean, ParSeq()))).toMap
+    map1
 
-    val value: Any = points.groupBy(p => findClosest(p, means))
-    ???
   }
 
   def findAverage(oldMean: Point, points: ParSeq[Point]): Point = if points.isEmpty then oldMean else
@@ -67,14 +68,17 @@ class KMeans extends KMeansInterface:
     if (???) kMeans(???, ???, ???) else ??? // your implementation need to be tail recursive
 
 /** Describes one point in three-dimensional space.
- *
- *  Note: deliberately uses reference equality.
- */
+  *
+  * Note: deliberately uses reference equality.
+  */
 class Point(val x: Double, val y: Double, val z: Double):
   private def square(v: Double): Double = v * v
+
   def squareDistance(that: Point): Double =
-    square(that.x - x)  + square(that.y - y) + square(that.z - z)
+    square(that.x - x) + square(that.y - y) + square(that.z - z)
+
   private def round(v: Double): Double = (v * 100).toInt / 100.0
+
   override def toString = s"(${round(x)}, ${round(y)}, ${round(z)})"
 
 
@@ -85,7 +89,7 @@ object KMeansRunner:
     Key.exec.maxWarmupRuns := 40,
     Key.exec.benchRuns := 25,
     Key.verbose := false
-  ) withWarmer(Warmer.Default())
+  ) withWarmer (Warmer.Default())
 
   def main(args: Array[String]): Unit =
     val kMeans = KMeans()
