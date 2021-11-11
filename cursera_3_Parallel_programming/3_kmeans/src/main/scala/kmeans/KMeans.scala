@@ -1,12 +1,13 @@
 package kmeans
 
+import org.scalameter.*
+
+import java.util.concurrent.ForkJoinPool
 import scala.annotation.tailrec
-import scala.collection.{Map, Seq, mutable}
 import scala.collection.parallel.CollectionConverters.*
 import scala.collection.parallel.{ForkJoinTaskSupport, ParMap, ParSeq}
+import scala.collection.{Map, Seq, mutable}
 import scala.util.Random
-import org.scalameter.*
-import java.util.concurrent.ForkJoinPool
 
 class KMeans extends KMeansInterface :
 
@@ -57,15 +58,24 @@ class KMeans extends KMeansInterface :
     }
     Point(x / points.length, y / points.length, z / points.length)
 
-  def update(classified: ParMap[Point, ParSeq[Point]], oldMeans: ParSeq[Point]): ParSeq[Point] =
-    ???
+  def update(classified: ParMap[Point, ParSeq[Point]], oldMeans: ParSeq[Point]): ParSeq[Point] = {
+    oldMeans.map(point => findAverage(point, classified.getOrElse(point, ParSeq())))
+  }
 
-  def converged(eta: Double, oldMeans: ParSeq[Point], newMeans: ParSeq[Point]): Boolean =
-    ???
+  def converged(eta: Double, oldMeans: ParSeq[Point], newMeans: ParSeq[Point]): Boolean = {
+    oldMeans match {
+      case _ if (oldMeans.isEmpty) => true
+      case _ if (oldMeans.head.squareDistance(newMeans.head) <= eta) => converged(eta, oldMeans.tail, newMeans.tail)
+      case _ => false
+    }
+  }
 
   @tailrec
-  final def kMeans(points: ParSeq[Point], means: ParSeq[Point], eta: Double): ParSeq[Point] =
-    if (???) kMeans(???, ???, ???) else ??? // your implementation need to be tail recursive
+  final def kMeans(points: ParSeq[Point], means: ParSeq[Point], eta: Double): ParSeq[Point] = {
+    val classified = classify(points, means)
+    val newMeans = update(classified, means)
+    if (!converged(eta, means, newMeans)) kMeans(points, newMeans, eta) else newMeans
+  }
 
 /** Describes one point in three-dimensional space.
   *
