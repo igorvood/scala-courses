@@ -100,7 +100,7 @@ case class Leaf(centerX: Float, centerY: Float, size: Float, bodies: coll.Seq[Bo
 
     xs.foldRight(Fork(nw, ne, sw, se))((body, fork) => fork.insert(body))
   }
-  
+
   def insert(b: Body): Quad = {
     val xs: coll.Seq[Body] = b +: bodies
     if (size <= minimumSize) copy(bodies = xs)
@@ -223,8 +223,7 @@ class TimeStatistics:
 
   def timed[T](title: String)(body: => T): T =
     var res: T = null.asInstanceOf[T]
-    val totalTime =
-    /*measure*/
+    val totalTime = /*measure*/
     val startTime = System.currentTimeMillis()
     res = body
     (System.currentTimeMillis() - startTime)
