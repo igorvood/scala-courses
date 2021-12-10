@@ -1,9 +1,10 @@
 package barneshut
 
-import java.util.concurrent.*
+import java.util.concurrent
 import scala.{collection => coll}
 import scala.util.DynamicVariable
-import barneshut.conctrees.*
+import barneshut.conctrees
+import barneshut.conctrees.ConcBuffer
 
 class Boundaries:
   var minX = Float.MaxValue
@@ -90,7 +91,7 @@ case class Leaf(centerX: Float, centerY: Float, size: Float, bodies: coll.Seq[Bo
   val (massX, massY) = (
     bodies.foldRight(0f)((b, _massX) => b.mass * b.x + _massX) / mass: Float,
     bodies.foldRight(0f)((b, _massY) => b.mass * b.y + _massY) / mass: Float)
-  
+
   val total: Int = bodies.length
 
   private def _insert(xs: coll.Seq[Body], b: Body, half: Float, quarter: Float): Quad = {
@@ -182,14 +183,22 @@ class SectorMatrix(val boundaries: Boundaries, val sectorPrecision: Int) extends
   val matrix = new Array[ConcBuffer[Body]](sectorPrecision * sectorPrecision)
   for i <- 0 until matrix.length do matrix(i) = ConcBuffer()
 
-  def +=(b: Body): SectorMatrix =
-    ???
+  def +=(b: Body): SectorMatrix = {
+    val pos = (p: Float, minimum: Float, maximum: Float) =>
+      ((scala.math.min(scala.math.max(minimum, p), maximum) - minimum) / sectorSize).toInt
+    apply(
+      pos(b.x, boundaries.minX, boundaries.maxX),
+      pos(b.y, boundaries.minY, boundaries.maxY)
+    ) += b
     this
+  }
 
-  def apply(x: Int, y: Int) = matrix(y * sectorPrecision + x)
+  def apply(x: Int, y: Int): ConcBuffer[Body] = matrix(y * sectorPrecision + x)
 
-  def combine(that: SectorMatrix): SectorMatrix =
-    ???
+  def combine(that: SectorMatrix): SectorMatrix = {
+    for (i <- matrix.indices) matrix(i) = matrix(i).combine(that.matrix(i))
+    this
+  }
 
   def toQuad(parallelism: Int): Quad =
     def BALANCING_FACTOR = 4
@@ -248,10 +257,10 @@ class TimeStatistics:
       case (k, (total, num)) => k + ": " + (total / num * 100).toInt / 100.0 + " ms"
     } mkString ("\n")
 
-val forkJoinPool = ForkJoinPool()
+val forkJoinPool = java.util.concurrent.ForkJoinPool()
 
 abstract class TaskScheduler:
-  def schedule[T](body: => T): ForkJoinTask[T]
+  def schedule[T](body: => T): java.util.concurrent.ForkJoinTask[T]
 
   def parallel[A, B](taskA: => A, taskB: => B): (A, B) =
     val right = task {
@@ -261,12 +270,12 @@ abstract class TaskScheduler:
     (left, right.join())
 
 class DefaultTaskScheduler extends TaskScheduler :
-  def schedule[T](body: => T): ForkJoinTask[T] =
-    val t = new RecursiveTask[T] {
+  def schedule[T](body: => T): java.util.concurrent.ForkJoinTask[T] =
+    val t = new java.util.concurrent.RecursiveTask[T] {
       def compute = body
     }
     Thread.currentThread match
-      case wt: ForkJoinWorkerThread =>
+      case wt: java.util.concurrent.ForkJoinWorkerThread =>
         t.fork()
       case _ =>
         forkJoinPool.execute(t)
@@ -275,7 +284,7 @@ class DefaultTaskScheduler extends TaskScheduler :
 val scheduler =
   DynamicVariable[TaskScheduler](DefaultTaskScheduler())
 
-def task[T](body: => T): ForkJoinTask[T] =
+def task[T](body: => T): java.util.concurrent.ForkJoinTask[T] =
   scheduler.value.schedule(body)
 
 def parallel[A, B](taskA: => A, taskB: => B): (A, B) =
