@@ -84,10 +84,13 @@ case class Fork(
 
 case class Leaf(centerX: Float, centerY: Float, size: Float, bodies: coll.Seq[Body])
   extends Quad {
-  val (mass, massX, massY) = (
-    bodies.foldRight(0f)((b, _mass) => b.mass + _mass): Float,
-    bodies.foldRight(0f)((b, _massX) => b.mass * b.x + _massX): Float,
-    bodies.foldRight(0f)((b, _massY) => b.mass + b.y + _massY): Float)
+  val mass =
+    bodies.foldRight(0f)((b, _mass) => b.mass + _mass)
+
+  val (massX, massY) = (
+    bodies.foldRight(0f)((b, _massX) => b.mass * b.x + _massX) / mass: Float,
+    bodies.foldRight(0f)((b, _massY) => b.mass * b.y + _massY) / mass: Float)
+  
   val total: Int = bodies.length
 
   private def _insert(xs: coll.Seq[Body], b: Body, half: Float, quarter: Float): Quad = {
@@ -152,9 +155,13 @@ class Body(val mass: Float, val x: Float, val y: Float, val xspeed: Float, val y
     def traverse(quad: Quad): Unit = (quad: Quad) match
       case Empty(_, _, _) =>
       // no force
-      case Leaf(_, _, _, bodies) =>
+      case Leaf(_, _, _, bodies) => bodies.foreach(body => addForce(body.mass, body.x, body.y))
       // add force contribution of each body by calling addForce
       case Fork(nw, ne, sw, se) =>
+        if (quad.size / distance(quad.massX, quad.massY, x, y) < theta)
+          addForce(quad.mass, quad.massX, quad.massY)
+        else Seq(nw, ne, sw, se).foreach(traverse)
+
     // see if node is far enough from the body,
     // or recursion is needed
 
