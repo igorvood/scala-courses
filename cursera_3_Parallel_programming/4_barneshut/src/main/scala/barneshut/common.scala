@@ -223,11 +223,12 @@ class TimeStatistics:
 
   def timed[T](title: String)(body: => T): T =
     var res: T = null.asInstanceOf[T]
-    val totalTime = /*measure*/
-    val startTime = System.currentTimeMillis()
-    res = body
-    (System.currentTimeMillis() - startTime)
-
+    val totalTime = {
+      /*measure*/
+      val startTime = System.currentTimeMillis()
+      res = body
+      (System.currentTimeMillis() - startTime)
+    }
     timeMap.get(title) match
       case Some((total, num)) => timeMap(title) = (total + totalTime, num + 1)
       case None => timeMap(title) = (0.0, 0)
