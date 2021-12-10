@@ -11,7 +11,7 @@ class BarnesHutSuite extends munit.FunSuite:
 
   import FloatOps.*
   test("Empty: center of mass should be the center of the cell") {
-    val quad = Empty(51f, 46.3f, 5f)
+    val quad = barneshut.Empty(51f, 46.3f, 5f)
     assert(quad.massX == 51f, s"${quad.massX} should be 51f")
     assert(quad.massY == 46.3f, s"${quad.massY} should be 46.3f")
   }
