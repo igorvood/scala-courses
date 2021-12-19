@@ -3,8 +3,9 @@ package wikipedia
 import org.apache.spark.SparkConf
 import org.apache.spark.SparkContext
 import org.apache.spark.SparkContext._
-
 import org.apache.spark.rdd.RDD
+
+import scala.collection.immutable
 
 case class WikipediaArticle(title: String, text: String) {
   /**
@@ -55,10 +56,12 @@ object WikipediaRanking extends WikipediaRankingInterface {
    * to the Wikipedia pages in which it occurs.
    */
   def makeIndex(langs: List[String], rdd: RDD[WikipediaArticle]): RDD[(String, Iterable[WikipediaArticle])] = {
-    val value = rdd
-      .map(wa => {
-        val lang = langs.filter(l => wa.mentionsLanguage(l)).take(1).head
-        (lang, wa)
+    val value: RDD[(String, Iterable[WikipediaArticle])] = rdd
+      .flatMap(wa => {
+        val lang: immutable.Seq[(String, WikipediaArticle)] = langs
+          .filter(l => wa.mentionsLanguage(l))
+          .map(lang => (lang, wa))
+        lang
       })
       .groupByKey()
     value
