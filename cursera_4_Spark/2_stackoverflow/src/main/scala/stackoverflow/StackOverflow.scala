@@ -20,11 +20,11 @@ object StackOverflow extends StackOverflow {
   /** Main function */
   def main(args: Array[String]): Unit = {
 
-    val lines   = sc.textFile("src/main/resources/stackoverflow/stackoverflow.csv")
-    val raw     = rawPostings(lines)
-    val grouped = groupedPostings(raw)
-    val scored  = scoredPostings(grouped)
-    val vectors = vectorPostings(scored)
+    val lines: RDD[String] = sc.textFile("src/main/resources/stackoverflow/stackoverflow.csv")
+    val raw: RDD[Answer] = rawPostings(lines)
+    val grouped: RDD[(QID, Iterable[(Question, Answer)])] = groupedPostings(raw)
+    val scored: RDD[(Question, HighScore)] = scoredPostings(grouped)
+    val vectors: RDD[(LangIndex, HighScore)] = vectorPostings(scored)
 //    assert(vectors.count() == 2121822, "Incorrect number of vectors: " + vectors.count())
 
     val means   = kmeans(sampleVectors(vectors), vectors, debug = true)
