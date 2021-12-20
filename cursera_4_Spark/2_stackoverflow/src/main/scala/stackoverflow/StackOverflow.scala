@@ -78,15 +78,15 @@ class StackOverflow extends StackOverflowInterface with Serializable {
 
   /** Group the questions and answers together */
   def groupedPostings(postings: RDD[Posting]): RDD[(QID, Iterable[(Question, Answer)])] = {
-
-    val answers: RDD[(QID, Answer)] = postings
+    val postingsCached = postings.cache()
+    val answers: RDD[(QID, Answer)] = postingsCached
       .filter(post => post.parentId match {
         case Some(_) => true
         case None => false
       })
       .map(post => (post.parentId.map((a: QID) => a).head, post))
 
-    val questions: RDD[(QID, Question)] = postings
+    val questions: RDD[(QID, Question)] = postingsCached
       .filter(post => post.parentId match {
         case Some(_) => false
         case None => true
