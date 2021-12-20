@@ -44,6 +44,7 @@ class StackOverflow extends StackOverflowInterface with Serializable {
 
   /** K-means parameter: How "far apart" languages should be for the kmeans algorithm? */
   def langSpread = 50000
+
   assert(langSpread > 0, "If langSpread is zero we can't recover the language from the input data!")
 
   /** K-means parameter: Number of clusters */
@@ -114,7 +115,8 @@ class StackOverflow extends StackOverflowInterface with Serializable {
       highScore
     }
 
-    ???
+    grouped.flatMap(f => f._2).groupByKey().map(q => (q._1, answerHighScore(q._2.toArray)))
+
   }
 
 
