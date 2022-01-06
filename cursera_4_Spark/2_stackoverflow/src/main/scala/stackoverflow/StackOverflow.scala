@@ -27,7 +27,8 @@ object StackOverflow extends StackOverflow {
     val vectors: RDD[(LangIndex, HighScore)] = vectorPostings(scored)
     //    assert(vectors.count() == 2121822, "Incorrect number of vectors: " + vectors.count())
 
-    val means = kmeans(sampleVectors(vectors), vectors, debug = true)
+    val tuples = sampleVectors(vectors)
+    val means = kmeans(tuples, vectors, debug = true)
     val results = clusterResults(means, vectors)
     printResults(results)
   }
@@ -300,12 +301,16 @@ class StackOverflow extends StackOverflowInterface with Serializable {
     val closestGrouped = closest.groupByKey()
 
     val median = closestGrouped.mapValues { vs =>
-      val i = vs.groupBy(_._1)
-        .map(q => (q._1, q._2.size))
-        .maxBy(_._1)._1 / langSpread
+      val langIndex = vs.groupBy(xs => xs._1)
+        .map(xs => (xs._1, xs._2.size))
+        .maxBy(xs => xs._1)._1 / langSpread
+
+      val langLabel: String = langs(langIndex) // most common language in the cluster
       val clusterSize: Int = vs.size
-      val langLabel: String = langs(i) // most common language in the cluster
-      val langPercent: Double = vs.map({ case (q, _) => q }).count(q => q == i * langSpread) * 100 / clusterSize // percent of the questions in the most common language
+      val langPercent: Double = vs
+        .map({ case (v1, _) => v1 })
+        .filter(v1 => v1 == langIndex * langSpread).size * 100 / clusterSize
+      //        .count(v1 => v1 == langIndex * langSpread) * 100 / clusterSize // percent of the questions in the most common language
 
       def medianVectors(s: Seq[Double]) = {
         val (lower, upper) =
