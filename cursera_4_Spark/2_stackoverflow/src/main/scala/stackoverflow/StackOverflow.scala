@@ -136,7 +136,14 @@ class StackOverflow extends StackOverflowInterface with Serializable {
       }
     }
 
-    ???
+    val scoredCached = scored.cache()
+
+    val value: RDD[(LangIndex, HighScore)] = scoredCached
+      .map({ case (post, rating) => (firstLangInTag(post.tags, langs), rating) })
+      .filter(q => q._1.nonEmpty)
+      .map({ case (tag, rating) => (tag.get * langSpread, rating) })
+
+    value
   }
 
 
