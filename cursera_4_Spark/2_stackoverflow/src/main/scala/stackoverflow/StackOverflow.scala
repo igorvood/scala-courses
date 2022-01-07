@@ -26,7 +26,7 @@ object StackOverflow extends StackOverflow {
     val scored: RDD[(Question, HighScore)] = scoredPostings(grouped)
     val vectors: RDD[(LangIndex, HighScore)] = vectorPostings(scored)
     //    assert(vectors.count() == 2121822, "Incorrect number of vectors: " + vectors.count())
-
+    println(vectors.toDebugString)
     val tuples = sampleVectors(vectors)
     val means = kmeans(tuples, vectors, debug = true)
     val results = clusterResults(means, vectors)
@@ -65,8 +65,8 @@ class StackOverflow extends StackOverflowInterface with Serializable {
   //
 
   /** Load postings from the given file */
-  def rawPostings(lines: RDD[String]): RDD[Posting] =
-    lines.map(line => {
+  def rawPostings(lines: RDD[String]): RDD[Posting] = {
+    val value = lines.map(line => {
       val arr = line.split(",")
       Posting(postingType = arr(0).toInt,
         id = arr(1).toInt,
@@ -75,6 +75,10 @@ class StackOverflow extends StackOverflowInterface with Serializable {
         score = arr(4).toInt,
         tags = if (arr.length >= 6) Some(arr(5).intern()) else None)
     })
+//    println(value.toDebugString)
+    value.persist()
+  }
+
 
 
   /** Group the questions and answers together */
