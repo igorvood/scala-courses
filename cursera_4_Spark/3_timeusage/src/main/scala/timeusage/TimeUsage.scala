@@ -61,24 +61,34 @@ object TimeUsage extends TimeUsageInterface {
     *    “t10”, “t12”, “t13”, “t14”, “t15”, “t16” and “t18” (those which are not part of the previous groups only).
     */
   def classifiedColumns(columnNames: List[String]): (List[Column], List[Column], List[Column]) = {
-val nonActivityCols = List("tucaseid")
-    val res = columnNames
-      .filter(col => !nonActivityCols.contains(col))
-      .map(colName =>
-        if (List("t01", "t03", "t11", "t1801", "t1803").contains(colName))
-          ("primary", col(colName))
-        else if (List("t05", "t1805").contains(colName))
-          ("working", col(colName))
-        else if (List("t02", "t04", "t06", "t07", "t08", "t09", "t10", "t12", "t13", "t14", "t15", "t16", "t18").contains(colName))
-          ("other", col(colName))
-        else throw new IllegalStateException("bad column "+colName)
-      ).groupBy(_._2)
-          //      col match {
-//        case
-//      })
-val tuple = (res("primary"), res("primary"), res("primary"))
+    val categoryMappings = List(
+      List("t01", "t03", "t11", "t1801", "t1803"),
+      List("t05", "t1805"),
+      List("t02", "t04", "t06", "t07", "t08", "t09", "t10", "t12", "t13", "t14", "t15", "t16", "t18")
+    ).zipWithIndex
 
-    ???
+
+    val groups: Map[Int, List[Column]] = columnNames
+      .foldLeft(List.empty[(Int, Column)])((acc, name) => {
+        categoryMappings
+          .flatMap {
+            case (prefixes, index) if prefixes.exists(name.startsWith) => Some((index, new Column(name)))
+            case _ => None
+          }
+          .sortBy(_._1)
+          .headOption match {
+          case Some(tuple) => tuple :: acc
+          case None => acc
+        }
+      }
+      )
+      .groupBy(_._1)
+      .mapValues(_.map(_._2))
+
+
+    val results = (0 to 2).map(index => groups.getOrElse(index, List.empty[Column]))
+
+    (results(0), results(1), results(2))
   }
 
   /** @return a projection of the initial DataFrame such that all columns containing hours spent on primary needs
