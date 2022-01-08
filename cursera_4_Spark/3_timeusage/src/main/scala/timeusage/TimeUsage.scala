@@ -43,7 +43,7 @@ object TimeUsage extends TimeUsageInterface {
     * @param line Raw fields
     */
   def row(line: List[String]): Row =
-    ???
+    Row.fromSeq(line.head::line.tail.map(_.toDouble))
 
   /** @return The initial data frame columns partitioned in three groups: primary needs (sleeping, eating, etc.),
     *         work and other (leisure activities)
@@ -61,6 +61,23 @@ object TimeUsage extends TimeUsageInterface {
     *    “t10”, “t12”, “t13”, “t14”, “t15”, “t16” and “t18” (those which are not part of the previous groups only).
     */
   def classifiedColumns(columnNames: List[String]): (List[Column], List[Column], List[Column]) = {
+val nonActivityCols = List("tucaseid")
+    val res = columnNames
+      .filter(col => !nonActivityCols.contains(col))
+      .map(colName =>
+        if (List("t01", "t03", "t11", "t1801", "t1803").contains(colName))
+          ("primary", col(colName))
+        else if (List("t05", "t1805").contains(colName))
+          ("working", col(colName))
+        else if (List("t02", "t04", "t06", "t07", "t08", "t09", "t10", "t12", "t13", "t14", "t15", "t16", "t18").contains(colName))
+          ("other", col(colName))
+        else throw new IllegalStateException("bad column "+colName)
+      ).groupBy(_._2)
+          //      col match {
+//        case
+//      })
+val tuple = (res("primary"), res("primary"), res("primary"))
+
     ???
   }
 
