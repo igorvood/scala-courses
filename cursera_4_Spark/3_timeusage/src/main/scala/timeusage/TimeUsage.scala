@@ -55,10 +55,10 @@ object TimeUsage extends TimeUsageInterface {
     *
     *      This method groups related columns together:
     *      1. “primary needs” activities (sleeping, eating, etc.). These are the columns starting with “t01”, “t03”, “t11”,
-    *      “t1801” and “t1803”.
-    *      2. working activities. These are the columns starting with “t05” and “t1805”.
-    *      3. other activities (leisure). These are the columns starting with “t02”, “t04”, “t06”, “t07”, “t08”, “t09”,
-    *      “t10”, “t12”, “t13”, “t14”, “t15”, “t16” and “t18” (those which are not part of the previous groups only).
+    *         “t1801” and “t1803”.
+    *         2. working activities. These are the columns starting with “t05” and “t1805”.
+    *         3. other activities (leisure). These are the columns starting with “t02”, “t04”, “t06”, “t07”, “t08”, “t09”,
+    *         “t10”, “t12”, “t13”, “t14”, “t15”, “t16” and “t18” (those which are not part of the previous groups only).
     */
   def classifiedColumns(columnNames: List[String]): (List[Column], List[Column], List[Column]) = {
     val categoryMappings = List(
@@ -69,18 +69,19 @@ object TimeUsage extends TimeUsageInterface {
 
 
     val groups: Map[Int, List[Column]] = columnNames
-      .foldLeft(List.empty[(Int, Column)])((acc, name) => {
-        categoryMappings
-          .flatMap {
-            case (prefixes, index) if prefixes.exists(name.startsWith) => Some((index, new Column(name)))
-            case _ => None
+      .foldLeft(List.empty[(Int, Column)])(
+        (acc, name) => {
+          categoryMappings
+            .flatMap {
+              case (prefixes, index) if prefixes.exists(name.startsWith) => Some((index, new Column(name)))
+              case _ => None
+            }
+            .sortBy(_._1)
+            .headOption match {
+            case Some(tuple) => tuple :: acc
+            case None => acc
           }
-          .sortBy(_._1)
-          .headOption match {
-          case Some(tuple) => tuple :: acc
-          case None => acc
         }
-      }
       )
       .groupBy(_._1)
       .mapValues(_.map(_._2))
@@ -130,20 +131,35 @@ object TimeUsage extends TimeUsageInterface {
     // more sense for our use case
     // Hint: you can use the `when` and `otherwise` Spark functions
     // Hint: don’t forget to give your columns the expected name with the `as` method
-    val workingStatusProjection: Column = ???
-    val sexProjection: Column = ???
-    val ageProjection: Column = ???
+    val workingStatusProjection: Column =  when('telfs >= 1.0 && 'telfs < 3.0, "working")
+      .otherwise("not working")
+      .as("working")
+    val sexProjection: Column = when('tesex === 1.0, "male")
+      .otherwise("female")
+      .as("sex")
+    val ageProjection: Column =  when('teage.between(15.0, 22.0), "young")
+      .when('teage.between(23.0, 55.0), "active")
+      .otherwise("elder")
+      .as("age")
+
 
     // Create columns that sum columns of the initial dataset
     // Hint: you want to create a complex column expression that sums other columns
     //       by using the `+` operator between them
     // Hint: don’t forget to convert the value to hours
-    val primaryNeedsProjection: Column = ???
-    val workProjection: Column = ???
-    val otherProjection: Column = ???
+    val primaryNeedsProjection: Column =  extractCol(primaryNeedsColumns, "primaryNeeds")
+    val workProjection: Column = extractCol(workColumns, "work")
+    val otherProjection: Column = extractCol(otherColumns, "other")
     df
       .select(workingStatusProjection, sexProjection, ageProjection, primaryNeedsProjection, workProjection, otherProjection)
       .where($"telfs" <= 4) // Discard people who are not in labor force
+  }
+
+  private def extractCol(primaryNeedsColumns: List[Column], alias: String) = {
+    primaryNeedsColumns
+      .reduce(_ + _)
+      .divide(60)
+      .as(alias)
   }
 
   /** @return the average daily time (in hours) spent in primary needs, working or leisure, grouped by the different
@@ -155,11 +171,11 @@ object TimeUsage extends TimeUsageInterface {
     *               - sex: the “sex” column of the `summed` DataFrame,
     *               - age: the “age” column of the `summed` DataFrame,
     *               - primaryNeeds: the average value of the “primaryNeeds” columns of all the people that have the same working
-    *               status, sex and age, rounded with a scale of 1 (using the `round` function),
+    *                 status, sex and age, rounded with a scale of 1 (using the `round` function),
     *               - work: the average value of the “work” columns of all the people that have the same working status, sex
-    *               and age, rounded with a scale of 1 (using the `round` function),
+    *                 and age, rounded with a scale of 1 (using the `round` function),
     *               - other: the average value of the “other” columns all the people that have the same working status, sex and
-    *               age, rounded with a scale of 1 (using the `round` function).
+    *                 age, rounded with a scale of 1 (using the `round` function).
     *
     *               Finally, the resulting DataFrame should be sorted by working status, sex and age.
     */
